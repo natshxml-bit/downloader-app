@@ -9,7 +9,7 @@ app = Flask(__name__)
 
 @app.after_request
 def after_request(response):
-    response.headers.add('Access-Control-Allow-Origin', 'https://tokitube.vercel.app/')
+    response.headers.add('Access-Control-Allow-Origin', 'https://tokitube.vercel.app')
     response.headers.add('Access-Control-Allow-Headers', 'Content-Type')
     response.headers.add('Access-Control-Allow-Methods', 'POST, GET, OPTIONS')
     return response
