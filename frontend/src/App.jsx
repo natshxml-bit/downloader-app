@@ -1,427 +1,402 @@
-import { useState, useEffect, useCallback, useRef } from 'react'
+import { useState, useEffect, useRef } from 'react';
+import './App.css';
 
-const API = 'https://downloader-app.up.railway.app'
+// ── Icons (inline SVG) ─────────────────────────────────────────────────────
+const IconHome = () => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>;
+const IconDownload = () => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>;
+const IconHistory = () => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/></svg>;
+const IconSettings = () => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06A1.65 1.65 0 0 0 4.6 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>;
+const IconPaste = () => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>;
+const IconMoon = () => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>;
+const IconSun = () => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>;
+const IconPlay = () => <svg viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21"/></svg>;
+const IconPause = () => <svg viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>;
+const IconCancel = () => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>;
+const IconOpen = () => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>;
+const IconRedo = () => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>;
+const IconTrash = () => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>;
+const IconCheck = () => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="20 6 9 17 4 12"/></svg>;
+const IconInfo = () => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>;
+const IconChevron = () => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 18 15 12 9 6"/></svg>;
 
-// Custom hook for localStorage
-function useLocalStorage(key, initialValue) {
-  const [stored, setStored] = useState(() => {
-    try {
-      const item = window.localStorage.getItem(key)
-      return item ? JSON.parse(item) : initialValue
-    } catch { return initialValue }
-  })
-  const setValue = (value) => {
-    try {
-      const v = value instanceof Function ? value(stored) : value
-      setStored(v)
-      window.localStorage.setItem(key, JSON.stringify(v))
-    } catch { console.error('localStorage error') }
-  }
-  return [stored, setValue]
+const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+
+// ── Toast System ───────────────────────────────────────────────────────────
+function useToast() {
+  const [toasts, setToasts] = useState([]);
+  const add = (msg, type = 'info') => {
+    const id = Date.now() + Math.random();
+    setToasts(prev => [...prev, { id, msg, type }]);
+    setTimeout(() => setToasts(prev => prev.filter(t => t.id !== id)), 3000);
+  };
+  return { toasts, add };
 }
 
-// Toast Component
-function Toast({ message, type, onClose }) {
-  useEffect(() => {
-    const t = setTimeout(onClose, 4000)
-    return () => clearTimeout(t)
-  }, [onClose])
-  
-  const colors = type === 'error' ? 'bg-red-500/10 border-red-500/30 text-red-200' : 'bg-green-500/10 border-green-500/30 text-green-200'
-  const icon = type === 'error' ? '⚠️' : '🎉'
-  
+// ── Skeleton ───────────────────────────────────────────────────────────────
+function SkeletonCard() {
   return (
-    <div className={`fixed top-4 right-4 z-50 p-4 rounded-2xl border backdrop-blur-xl ${colors} shadow-2xl animate-[slideIn_0.4s_ease-out] max-w-xs`}>
-      <div className="flex items-start gap-3">
-        <span className="text-lg">{icon}</span>
-        <p className="text-sm leading-relaxed">{message}</p>
-      </div>
+    <div className="skeleton-wrap">
+      <div className="skeleton skeleton-thumb" />
+      <div className="skeleton skeleton-title" />
+      <div className="skeleton skeleton-meta" />
     </div>
-  )
+  );
 }
 
-// Waveform Animation
-function Waveform() {
-  return (
-    <div className="flex items-center gap-1 h-8">
-      {[...Array(8)].map((_, i) => (
-        <div key={i} 
-          className="w-1 bg-gradient-to-t from-purple-500 to-pink-500 rounded-full animate-[wave_1s_ease-in-out_infinite]"
-          style={{ 
-            height: '40%', 
-            animationDelay: `${i * 0.1}s`,
-            animationDuration: `${0.8 + Math.random() * 0.4}s`
-          }}
-        />
-      ))}
-    </div>
-  )
-}
+// ── Home View ────────────────────────────────────────────────────────────────
+function HomeView({ toast }) {
+  const [url, setUrl] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [info, setInfo] = useState(null);
+  const [formats, setFormats] = useState([]);
+  const inputRef = useRef(null);
 
-// Skeleton Loader
-function Skeleton() {
-  return (
-    <div className="mt-6 bg-white/5 backdrop-blur-xl border border-white/10 rounded-3xl overflow-hidden p-5 animate-pulse">
-      <div className="h-48 bg-white/10 rounded-2xl mb-4" />
-      <div className="h-5 bg-white/10 rounded-lg w-3/4 mb-3" />
-      <div className="h-4 bg-white/10 rounded-lg w-1/2 mb-5" />
-      <div className="grid grid-cols-2 gap-3">
-        <div className="h-12 bg-white/10 rounded-2xl" />
-        <div className="h-12 bg-white/10 rounded-2xl" />
-      </div>
-    </div>
-  )
-}
-
-function App() {
-  const [url, setUrl] = useState('')
-  const [info, setInfo] = useState(null)
-  const [formats, setFormats] = useState([])
-  const [selectedFormat, setSelectedFormat] = useState('')
-  const [loading, setLoading] = useState(false)
-  const [fetchingInfo, setFetchingInfo] = useState(false)
-  const [toast, setToast] = useState(null)
-  const [progress, setProgress] = useState(0)
-  const [history, setHistory] = useLocalStorage('tokitube_history', [])
-  const [showHistory, setShowHistory] = useState(false)
-  const [isDragging, setIsDragging] = useState(false)
-  const inputRef = useRef(null)
-
-  const showToast = (message, type = 'success') => {
-    setToast({ message, type })
-  }
-
-  const fetchInfo = useCallback(async (linkUrl) => {
-    const target = linkUrl || url
-    if (!target.trim()) return
-    setFetchingInfo(true); setInfo(null); setFormats([]); setSelectedFormat('')
-    try {
-      const res = await fetch(`${API}/api/info`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ url: target })
-      })
-      const data = await res.json()
-      if (!res.ok) throw new Error(data.error || 'Failed')
-      setInfo(data)
-      
-      // Fetch formats
-      const fmtRes = await fetch(`${API}/api/formats`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ url: target })
-      })
-      const fmtData = await fmtRes.json()
-      if (fmtRes.ok && fmtData.formats) {
-        setFormats(fmtData.formats)
-      }
-    } catch (err) { showToast(err.message, 'error') }
-    finally { setFetchingInfo(false) }
-  }, [url])
-
-  const download = async (type) => {
-    setLoading(true); setProgress(10)
-    try {
-      const res = await fetch(`${API}/api/download`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ 
-          url, 
-          type, 
-          format_id: selectedFormat,
-          title: info?.title 
-        })
-      })
-      const data = await res.json()
-      if (!res.ok) throw new Error(data.error || 'Download failed')
-
-      setProgress(60)
-      const fileRes = await fetch(`${API}/api/file/${data.file}`)
-      if (!fileRes.ok) throw new Error('Transfer failed')
-      
-      const blob = await fileRes.blob()
-      setProgress(85)
-      
-      const blobUrl = window.URL.createObjectURL(blob)
-      const a = document.createElement('a')
-      a.href = blobUrl
-      a.download = data.file
-      document.body.appendChild(a); a.click(); a.remove()
-      window.URL.revokeObjectURL(blobUrl)
-      
-      setProgress(100)
-      showToast(`Saved: ${data.file}`)
-      
-      // Add to history
-      const newItem = {
-        id: Date.now(),
-        title: info.title,
-        type,
-        thumbnail: info.thumbnail,
-        date: new Date().toLocaleString(),
-        platform: info.platform
-      }
-      setHistory(prev => [newItem, ...prev.slice(0, 19)])
-      
-      setInfo(null); setUrl(''); setFormats([]); setSelectedFormat('')
-    } catch (err) { showToast(err.message, 'error') }
-    finally { setTimeout(() => setProgress(0), 1500); setLoading(false) }
-  }
-
-  // Paste from clipboard
   const handlePaste = async () => {
     try {
-      const text = await navigator.clipboard.readText()
-      if (text) { setUrl(text); setTimeout(() => fetchInfo(text), 100) }
-    } catch { showToast('Clipboard access denied', 'error') }
-  }
+      const text = await navigator.clipboard.readText();
+      if (text && text.startsWith('http')) {
+        setUrl(text);
+        toast('Link pasted from clipboard', 'success');
+        setTimeout(() => fetchInfo(text), 300);
+      } else {
+        toast('No valid URL in clipboard');
+      }
+    } catch {
+      toast('Clipboard access denied');
+    }
+  };
 
-  // Drag & Drop
-  const handleDrop = (e) => {
-    e.preventDefault()
-    setIsDragging(false)
-    const dropped = e.dataTransfer.getData('text')
-    if (dropped) { setUrl(dropped); setTimeout(() => fetchInfo(dropped), 100) }
-  }
+  const fetchInfo = async (link) => {
+    if (!link || !link.startsWith('http')) { toast('Please enter a valid URL'); return; }
+    setLoading(true); setInfo(null); setFormats([]);
+    try {
+      const res = await fetch(`${API_BASE}/api/info`, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ url: link })
+      });
+      const data = await res.json();
+      if (data.error) throw new Error(data.error);
+      setInfo(data);
+      toast('Media info loaded', 'success');
+      const fRes = await fetch(`${API_BASE}/api/formats`, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ url: link })
+      });
+      const fData = await fRes.json();
+      if (!fData.error) setFormats(fData.formats || []);
+    } catch (e) {
+      toast(e.message || 'Failed to fetch info');
+    } finally { setLoading(false); }
+  };
 
-  const handleDragOver = (e) => { e.preventDefault(); setIsDragging(true) }
-  const handleDragLeave = () => setIsDragging(false)
+  const startDownload = async (formatId, type) => {
+    toast(`Starting ${type} download…`);
+    try {
+      const res = await fetch(`${API_BASE}/api/download`, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ url, type, format_id: formatId, title: info?.title })
+      });
+      const data = await res.json();
+      if (data.error) throw new Error(data.error);
+      toast('Download ready! Check Downloads tab', 'success');
+    } catch (e) {
+      toast(e.message || 'Download failed');
+    }
+  };
 
-  const clearHistory = () => { setHistory([]); showToast('History cleared') }
+  const videoFormats = formats.filter(f => f.type === 'video');
+  const audioFormats = formats.filter(f => f.type === 'audio');
 
   return (
-    <div className="min-h-screen bg-[#050508] text-white flex flex-col items-center p-4 relative overflow-hidden selection:bg-purple-500/30">
-      
-      {/* Animated Background */}
-      <div className="fixed inset-0 pointer-events-none">
-        <div className="absolute top-[-10%] left-[-10%] w-[500px] h-[500px] bg-purple-600/10 rounded-full blur-[120px] animate-[pulse_4s_ease-in-out_infinite]" />
-        <div className="absolute bottom-[-10%] right-[-10%] w-[500px] h-[500px] bg-pink-600/10 rounded-full blur-[120px] animate-[pulse_5s_ease-in-out_infinite_1s]" />
-        <div className="absolute top-[40%] left-[50%] translate-x-[-50%] w-[300px] h-[300px] bg-cyan-600/5 rounded-full blur-[100px]" />
+    <div className="home-view">
+      <div className="app-header">
+        <div className="app-title">Downloader</div>
+        <button className="theme-toggle" onClick={() => toast('Theme toggle')} title="Toggle theme">
+          <IconSun />
+        </button>
       </div>
 
-      {/* Toast */}
-      {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
-
-      <div className="w-full max-w-md relative z-10 pt-8 pb-20">
-        
-        {/* Header */}
-        <div className="text-center mb-8">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/5 border border-white/10 text-[10px] text-gray-400 mb-4 tracking-wider uppercase">
-            <span className="w-1.5 h-1.5 rounded-full bg-green-400 animate-pulse" />
-            Online
-          </div>
-          <h1 className="text-6xl font-black tracking-tighter mb-1">
-            <span className="bg-gradient-to-r from-purple-400 via-pink-400 to-orange-400 bg-clip-text text-transparent">
-              TokiTube
-            </span>
-          </h1>
-          <p className="text-gray-500 text-xs tracking-wide">YouTube & TikTok Downloader</p>
-        </div>
-
-        {/* Input Area */}
-        <div 
-          onDrop={handleDrop}
-          onDragOver={handleDragOver}
-          onDragLeave={handleDragLeave}
-          className={`relative bg-white/[0.03] backdrop-blur-2xl border rounded-3xl p-1.5 transition-all duration-300 ${isDragging ? 'border-purple-500/50 scale-[1.02] shadow-[0_0_30px_rgba(168,85,247,0.15)]' : 'border-white/10'}`}
-        >
-          <div className="bg-black/20 rounded-[20px] p-5">
-            <form onSubmit={(e) => { e.preventDefault(); fetchInfo() }} className="space-y-4">
-              <div className="relative group">
-                <input
-                  ref={inputRef}
-                  type="text"
-                  value={url}
-                  onChange={(e) => setUrl(e.target.value)}
-                  placeholder="Drop link here or paste..."
-                  className="w-full px-4 py-4 pl-11 pr-12 rounded-2xl bg-white/5 border border-white/10 focus:border-purple-500/50 focus:outline-none focus:ring-2 focus:ring-purple-500/20 transition text-sm placeholder-gray-600 group-hover:border-white/20"
-                  required
-                />
-                <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500">🔗</span>
-                <button
-                  type="button"
-                  onClick={handlePaste}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 p-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-gray-400 hover:text-white transition text-xs border border-white/10"
-                  title="Paste from clipboard"
-                >
-                  📋
-                </button>
-              </div>
-              
-              <button
-                type="submit"
-                disabled={fetchingInfo}
-                className="w-full py-4 rounded-2xl bg-gradient-to-r from-purple-600 via-pink-600 to-orange-500 font-bold text-sm tracking-wide hover:opacity-90 disabled:opacity-30 disabled:cursor-not-allowed transition-all active:scale-[0.97] shadow-lg shadow-purple-900/20"
-              >
-                {fetchingInfo ? (
-                  <span className="flex items-center justify-center gap-2">
-                    <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none"/><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/></svg>
-                    Analyzing...
-                  </span>
-                ) : 'Analyze Link'}
-              </button>
-            </form>
-
-            {/* Progress */}
-            {progress > 0 && (
-              <div className="mt-4">
-                <div className="h-1 bg-white/10 rounded-full overflow-hidden">
-                  <div className="h-full bg-gradient-to-r from-purple-500 via-pink-500 to-orange-400 transition-all duration-700 rounded-full" style={{ width: `${progress}%` }} />
-                </div>
-                <p className="text-[10px] text-gray-500 mt-2 text-center uppercase tracking-wider">
-                  {progress < 30 ? 'Preparing...' : progress < 70 ? 'Downloading...' : progress < 100 ? 'Processing...' : 'Complete ✓'}
-                </p>
-              </div>
-            )}
-
-            {/* Audio Visualizer */}
-            {loading && progress > 0 && progress < 100 && (
-              <div className="mt-4 flex justify-center">
-                <Waveform />
-              </div>
-            )}
-          </div>
-        </div>
-
-        {/* Skeleton Loading */}
-        {fetchingInfo && <Skeleton />}
-
-        {/* Video Info Card */}
-        {info && !fetchingInfo && (
-          <div className="mt-6 bg-white/[0.03] backdrop-blur-2xl border border-white/10 rounded-3xl overflow-hidden shadow-2xl animate-[fadeUp_0.5s_ease-out]">
-            <div className="relative">
-              <img src={info.thumbnail} alt="thumb" className="w-full h-52 object-cover" />
-              <div className="absolute inset-0 bg-gradient-to-t from-[#050508] via-transparent to-transparent" />
-              <div className="absolute bottom-4 left-5 right-5">
-                <h2 className="text-lg font-bold leading-snug line-clamp-2 drop-shadow-lg">{info.title}</h2>
-              </div>
-              {info.duration && (
-                <span className="absolute top-3 right-3 bg-black/60 backdrop-blur-md px-2.5 py-1 rounded-lg text-[10px] font-mono border border-white/10">
-                  {info.duration}
-                </span>
-              )}
-            </div>
-            
-            <div className="p-5">
-              <div className="flex items-center justify-between mb-4">
-                <div className="flex items-center gap-2">
-                  <span className="px-2.5 py-1 rounded-lg bg-white/5 border border-white/10 text-[10px] uppercase tracking-wider text-gray-400">
-                    {info.platform}
-                  </span>
-                  <span className="text-xs text-gray-500">{info.channel}</span>
-                </div>
-                {info.view_count && (
-                  <span className="text-[10px] text-gray-600">
-                    {info.view_count.toLocaleString()} views
-                  </span>
-                )}
-              </div>
-
-              {/* Quality Selector */}
-              {formats.length > 0 && (
-                <div className="mb-4">
-                  <label className="text-[10px] uppercase tracking-wider text-gray-500 mb-2 block">Quality</label>
-                  <select
-                    value={selectedFormat}
-                    onChange={(e) => setSelectedFormat(e.target.value)}
-                    className="w-full px-3 py-2.5 rounded-xl bg-white/5 border border-white/10 text-sm focus:border-purple-500/50 focus:outline-none text-gray-300"
-                  >
-                    <option value="">Auto (Best)</option>
-                    {formats.map((f, i) => (
-                      <option key={i} value={f.format_id}>
-                        {f.type === 'audio' ? `🎵 ${f.note}` : `🎬 ${f.note}`}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-              )}
-
-              <div className="grid grid-cols-2 gap-3">
-                <button
-                  onClick={() => download('mp3')}
-                  disabled={loading}
-                  className="group py-3.5 rounded-2xl bg-gradient-to-br from-emerald-500/20 to-green-600/20 border border-emerald-500/20 font-semibold text-sm hover:from-emerald-500/30 hover:to-green-600/30 transition-all active:scale-[0.96] disabled:opacity-30"
-                >
-                  <span className="flex items-center justify-center gap-2">
-                    {loading ? <span className="animate-spin text-xs">⏳</span> : <span>🎵</span>} 
-                    <span>MP3</span>
-                  </span>
-                </button>
-                <button
-                  onClick={() => download('mp4')}
-                  disabled={loading}
-                  className="group py-3.5 rounded-2xl bg-gradient-to-br from-blue-500/20 to-indigo-600/20 border border-blue-500/20 font-semibold text-sm hover:from-blue-500/30 hover:to-indigo-600/30 transition-all active:scale-[0.96] disabled:opacity-30"
-                >
-                  <span className="flex items-center justify-center gap-2">
-                    {loading ? <span className="animate-spin text-xs">⏳</span> : <span>🎬</span>} 
-                    <span>MP4</span>
-                  </span>
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* History Toggle */}
-        <div className="mt-8 flex justify-center">
-          <button 
-            onClick={() => setShowHistory(!showHistory)}
-            className="text-xs text-gray-600 hover:text-gray-400 transition flex items-center gap-2"
-          >
-            <span>{showHistory ? '▼' : '▶'}</span> Download History ({history.length})
+      <div className="input-section">
+        <div className="url-input-wrap">
+          <input
+            ref={inputRef}
+            type="text"
+            className="url-input"
+            placeholder="Paste link here…"
+            value={url}
+            onChange={e => setUrl(e.target.value)}
+            onPaste={() => setTimeout(() => url && fetchInfo(url), 100)}
+            onKeyDown={e => e.key === 'Enter' && fetchInfo(url)}
+          />
+          <button className="paste-btn" onClick={handlePaste} title="Paste from clipboard">
+            <IconPaste />
           </button>
         </div>
+        <button className="download-btn" onClick={() => fetchInfo(url)} disabled={loading}>
+          <IconDownload />
+          {loading ? 'Fetching…' : 'Download'}
+        </button>
+        <div className="helper-text">Supports YouTube, TikTok, Instagram & more</div>
+      </div>
 
-        {/* History Panel */}
-        {showHistory && (
-          <div className="mt-4 space-y-3 animate-[fadeUp_0.3s_ease-out]">
-            {history.length === 0 ? (
-              <p className="text-center text-gray-700 text-xs">No history yet</p>
-            ) : (
-              <>
-                {history.map((item) => (
-                  <div key={item.id} className="flex items-center gap-3 p-3 rounded-2xl bg-white/[0.02] border border-white/5 hover:border-white/10 transition">
-                    <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-purple-500/20 to-pink-500/20 flex items-center justify-center text-lg">
-                      {item.type === 'mp3' ? '🎵' : '🎬'}
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-xs font-medium truncate">{item.title}</p>
-                      <p className="text-[10px] text-gray-600">{item.platform} • {item.type.toUpperCase()} • {item.date}</p>
-                    </div>
-                  </div>
-                ))}
-                <button onClick={clearHistory} className="w-full py-2 text-[10px] text-red-400/60 hover:text-red-400 transition uppercase tracking-wider">
-                  Clear History
-                </button>
-              </>
-            )}
+      {loading && <SkeletonCard />}
+
+      {info && !loading && (
+        <div className="preview-card show">
+          <img className="preview-thumb" src={info.thumbnail || ''} alt="thumbnail" />
+          <div className="preview-body">
+            <div className="preview-title">{info.title}</div>
+            <div className="preview-meta">
+              <span className="source-icon"><IconPlay /></span>
+              <span>{info.duration}</span>
+              <span>{info.channel}</span>
+            </div>
           </div>
-        )}
+        </div>
+      )}
 
-      </div>
-
-      {/* Footer */}
-      <div className="fixed bottom-0 w-full text-center py-3 text-[10px] text-gray-800 bg-gradient-to-t from-[#050508] to-transparent pointer-events-none">
-        TokiTube • Flask + React + yt-dlp
-      </div>
-
-      {/* Global Styles for animations */}
-      <style>{`
-        @keyframes slideIn {
-          from { transform: translateX(100%); opacity: 0; }
-          to { transform: translateX(0); opacity: 1; }
-        }
-        @keyframes fadeUp {
-          from { transform: translateY(20px); opacity: 0; }
-          to { transform: translateY(0); opacity: 1; }
-        }
-        @keyframes wave {
-          0%, 100% { transform: scaleY(0.4); }
-          50% { transform: scaleY(1); }
-        }
-      `}</style>
+      {formats.length > 0 && !loading && (
+        <div className="formats-section show">
+          {videoFormats.length > 0 && (
+            <>
+              <div className="formats-title">Video</div>
+              <div className="format-grid">
+                {videoFormats.map(f => (
+                  <button key={f.format_id} className="format-btn" onClick={() => startDownload(f.format_id, 'mp4')}>
+                    <span className="format-label">{f.note}</span>
+                    <span className="format-sub">{f.ext?.toUpperCase()} {f.size_approx ? `· ~${(f.size_approx/1024/1024).toFixed(0)} MB` : ''}</span>
+                  </button>
+                ))}
+              </div>
+            </>
+          )}
+          {audioFormats.length > 0 && (
+            <>
+              <div className="formats-title" style={{ marginTop: 16 }}>Audio</div>
+              <div className="format-grid">
+                {audioFormats.map(f => (
+                  <button key={f.format_id} className="format-btn" onClick={() => startDownload(f.format_id, 'mp3')}>
+                    <span className="format-label">{f.note}</span>
+                    <span className="format-sub">{f.ext?.toUpperCase()} {f.quality ? `· ${f.quality}kbps` : ''}</span>
+                  </button>
+                ))}
+              </div>
+            </>
+          )}
+        </div>
+      )}
     </div>
-  )
+  );
 }
 
-export default App
+// ── Downloads View ───────────────────────────────────────────────────────────
+function DownloadsView({ toast }) {
+  const [downloads, setDownloads] = useState([
+    { id: 1, name: 'Summer Vibes 2024.mp4', progress: 65, status: 'downloading', speed: '2.4 MB/s', eta: '12s', type: '1080p · MP4', paused: false },
+    { id: 2, name: 'Podcast Interview.mp3', progress: 92, status: 'downloading', speed: '1.1 MB/s', eta: '3s', type: 'MP3 · 192 kbps', paused: false },
+  ]);
+
+  useEffect(() => {
+    const iv = setInterval(() => {
+      setDownloads(prev => prev.map(d => {
+        if (d.paused || d.status === 'done') return d;
+        const next = Math.min(100, d.progress + Math.floor(Math.random() * 3));
+        return { ...d, progress: next, status: next >= 100 ? 'done' : 'downloading', speed: next >= 100 ? 'Complete' : d.speed, eta: next >= 100 ? '' : d.eta };
+      }));
+    }, 800);
+    return () => clearInterval(iv);
+  }, []);
+
+  const togglePause = (id) => {
+    setDownloads(prev => prev.map(d => d.id === id ? { ...d, paused: !d.paused } : d));
+    toast('Download paused');
+  };
+
+  const cancel = (id) => {
+    setDownloads(prev => prev.filter(d => d.id !== id));
+    toast('Download cancelled');
+  };
+
+  return (
+    <div className="downloads-view">
+      <div className="section-title">Active Downloads</div>
+      {downloads.length === 0 ? (
+        <div className="empty-state">
+          <IconDownload />
+          <p>No active downloads</p>
+        </div>
+      ) : (
+        <div className="downloads-list">
+          {downloads.map(d => (
+            <div className="download-item" key={d.id}>
+              <div className="download-header">
+                <div className="download-name">{d.name}</div>
+                <div className={`download-status ${d.status}`}>{d.status === 'done' ? 'Done' : d.progress + '%'}</div>
+              </div>
+              <div className="download-meta-row">
+                <span>{d.type}</span>
+                <span>{d.speed}{d.eta ? ' · ' + d.eta + ' left' : ''}</span>
+              </div>
+              <div className="progress-track">
+                <div className="progress-fill" style={{ width: d.progress + '%' }} />
+              </div>
+              <div className="download-actions">
+                <button className="action-btn" onClick={() => togglePause(d.id)} disabled={d.status === 'done'}>
+                  {d.paused ? <IconPlay /> : <IconPause />}
+                  {d.paused ? 'Resume' : 'Pause'}
+                </button>
+                <button className="action-btn danger" onClick={() => cancel(d.id)}>
+                  <IconCancel /> Cancel
+                </button>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ── History View ─────────────────────────────────────────────────────────────
+function HistoryView({ toast }) {
+  const [items, setItems] = useState([
+    { id: 1, title: 'Tutorial React Hooks', meta: 'MP4 · 156 MB · 2 hours ago' },
+    { id: 2, title: 'Lo-Fi Chill Mix', meta: 'MP3 · 12 MB · Yesterday' },
+    { id: 3, title: 'Documentary: Ocean Life', meta: 'MP4 · 890 MB · 3 days ago' },
+  ]);
+
+  const remove = (id) => { setItems(prev => prev.filter(i => i.id !== id)); toast('Deleted from history'); };
+  const redo = (title) => toast(`Re-download started: ${title}`);
+
+  return (
+    <div className="history-view">
+      <div className="section-title">History</div>
+      {items.length === 0 ? (
+        <div className="empty-state">
+          <IconHistory />
+          <p>No download history</p>
+        </div>
+      ) : (
+        <div className="history-list">
+          {items.map(item => (
+            <div className="history-item" key={item.id}>
+              <div className="history-thumb" />
+              <div className="history-info">
+                <div className="history-title">{item.title}</div>
+                <div className="history-meta">{item.meta}</div>
+              </div>
+              <div className="history-actions">
+                <button className="icon-btn" title="Open"><IconOpen /></button>
+                <button className="icon-btn" title="Re-download" onClick={() => redo(item.title)}><IconRedo /></button>
+                <button className="icon-btn danger" title="Delete" onClick={() => remove(item.id)}><IconTrash /></button>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ── Settings View ────────────────────────────────────────────────────────────
+function SettingsView({ toast, dark, setDark }) {
+  const [auto, setAuto] = useState(false);
+
+  return (
+    <div className="settings-view">
+      <div className="section-title">Settings</div>
+      <div className="settings-list">
+        <div className="settings-item">
+          <div>
+            <div className="settings-label">Dark mode</div>
+            <div className="settings-desc">Use dark theme throughout the app</div>
+          </div>
+          <button className={`toggle-switch ${dark ? 'on' : ''}`} onClick={() => { setDark(!dark); toast(dark ? 'Light mode' : 'Dark mode'); }}>
+            <div className="toggle-knob" />
+          </button>
+        </div>
+        <div className="settings-item">
+          <div>
+            <div className="settings-label">Auto-download</div>
+            <div className="settings-desc">Start download immediately after paste</div>
+          </div>
+          <button className={`toggle-switch ${auto ? 'on' : ''}`} onClick={() => setAuto(!auto)}>
+            <div className="toggle-knob" />
+          </button>
+        </div>
+        <div className="settings-item">
+          <div>
+            <div className="settings-label">Default quality</div>
+            <div className="settings-desc">Highest available</div>
+          </div>
+          <span className="settings-arrow">1080p <IconChevron /></span>
+        </div>
+        <div className="settings-item">
+          <div>
+            <div className="settings-label">Save location</div>
+            <div className="settings-desc">/storage/emulated/0/Download</div>
+          </div>
+          <span className="settings-arrow">Change <IconChevron /></span>
+        </div>
+        <div className="settings-item">
+          <div>
+            <div className="settings-label">Clear history</div>
+            <div className="settings-desc">Remove all download history</div>
+          </div>
+          <button className="icon-btn danger" onClick={() => toast('History cleared')}><IconTrash /></button>
+        </div>
+        <div className="settings-item" style={{ border: 'none' }}>
+          <div>
+            <div className="settings-label">About</div>
+            <div className="settings-desc">Version 1.0.0</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ── App ──────────────────────────────────────────────────────────────────────
+export default function App() {
+  const [tab, setTab] = useState('home');
+  const [dark, setDark] = useState(true);
+  const { toasts, add: toast } = useToast();
+
+  useEffect(() => {
+    document.documentElement.setAttribute('data-theme', dark ? 'dark' : 'light');
+  }, [dark]);
+
+  const tabs = [
+    { key: 'home', label: 'Home', icon: <IconHome /> },
+    { key: 'downloads', label: 'Downloads', icon: <IconDownload /> },
+    { key: 'history', label: 'History', icon: <IconHistory /> },
+    { key: 'settings', label: 'Settings', icon: <IconSettings /> },
+  ];
+
+  return (
+    <div className="downloader-app">
+      <div className="toast-container">
+        {toasts.map(t => (
+          <div className={`toast show ${t.type}`} key={t.id}>
+            {t.type === 'success' ? <IconCheck /> : <IconInfo />}
+            <span>{t.msg}</span>
+          </div>
+        ))}
+      </div>
+
+      {tab === 'home' && <HomeView toast={toast} />}
+      {tab === 'downloads' && <DownloadsView toast={toast} />}
+      {tab === 'history' && <HistoryView toast={toast} />}
+      {tab === 'settings' && <SettingsView toast={toast} dark={dark} setDark={setDark} />}
+
+      <nav className="bottom-nav">
+        {tabs.map(t => (
+          <button key={t.key} className={`nav-item ${tab === t.key ? 'active' : ''}`} onClick={() => setTab(t.key)}>
+            {t.icon}
+            {t.label}
+          </button>
+        ))}
+      </nav>
+    </div>
+  );
+}
