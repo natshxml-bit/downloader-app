@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
 
-const API = 'https://downloader-app.up.railway.app/'
+const API = 'https://downloader-app.up.railway.app'
 
 // Custom hook for localStorage
 function useLocalStorage(key, initialValue) {
