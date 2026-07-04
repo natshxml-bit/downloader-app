@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
 
-const API = 'http://127.0.0.1:8000'
+const API = 'https://downloader-app.up.railway.app/'
 
 // Custom hook for localStorage
 function useLocalStorage(key, initialValue) {
@@ -82,7 +82,7 @@ function App() {
   const [fetchingInfo, setFetchingInfo] = useState(false)
   const [toast, setToast] = useState(null)
   const [progress, setProgress] = useState(0)
-  const [history, setHistory] = useLocalStorage('grab_history', [])
+  const [history, setHistory] = useLocalStorage('tokitube_history', [])
   const [showHistory, setShowHistory] = useState(false)
   const [isDragging, setIsDragging] = useState(false)
   const inputRef = useRef(null)
@@ -212,7 +212,7 @@ function App() {
           </div>
           <h1 className="text-6xl font-black tracking-tighter mb-1">
             <span className="bg-gradient-to-r from-purple-400 via-pink-400 to-orange-400 bg-clip-text text-transparent">
-              GrabIt
+              TokiTube
             </span>
           </h1>
           <p className="text-gray-500 text-xs tracking-wide">YouTube & TikTok Downloader</p>
@@ -402,7 +402,7 @@ function App() {
 
       {/* Footer */}
       <div className="fixed bottom-0 w-full text-center py-3 text-[10px] text-gray-800 bg-gradient-to-t from-[#050508] to-transparent pointer-events-none">
-        GrabIt • Flask + React + yt-dlp
+        TokiTube • Flask + React + yt-dlp
       </div>
 
       {/* Global Styles for animations */}
