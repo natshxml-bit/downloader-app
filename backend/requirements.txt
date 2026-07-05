@@ -1,4 +1,17 @@
-flask
-yt-dlp
-gunicorn
-curl-cffi
+# Core
+Flask>=2.3.0
+yt-dlp>=2024.7.0
+
+# Security & Rate Limiting
+Flask-Limiter>=3.5.0
+Flask-CORS>=4.0.0
+
+# Scheduling & Cleanup
+APScheduler>=3.10.0
+
+# Production Server
+gunicorn>=21.0.0
+
+# Optional: Redis for distributed rate limiting (recommended for production)
+# redis>=5.0.0
+# Flask-Limiter[redis]

@@ -1,0 +1,20 @@
+version: "3.8"
+
+services:
+  backend:
+    build: ./backend
+    ports:
+      - "8000:8000"
+    environment:
+      - PORT=8000
+      - DEBUG=false
+      - CORS_ORIGINS=https://tokitube.vercel.app
+      - RATE_LIMIT=30 per minute
+      - MAX_FILE_SIZE_MB=500
+      - FILE_TTL_MINUTES=30
+    volumes:
+      - downloads:/app/downloads
+    restart: unless-stopped
+
+volumes:
+  downloads:
